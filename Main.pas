@@ -322,11 +322,13 @@ M1:
  img1.Canvas.LineTo(Round(395+cos(AWD*(pi/180)-pi/2)*267),Round(302+sin(AWD*(pi/180)-pi/2)*267));
  end;
 
- if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
+ //if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
+   RMC:=40;HDT:=90;
+
    begin
     //true wind
-    TWS:=Sqrt(Sqr(RMC)+Sqr(AWS)-(2*RMC*AWS*cos(AWD-HDT)));
-    if AWD-HDT<0 then dk:=AWD-HDT+360;
+    if AWD-HDT<0 then dk:=AWD-HDT+360 else dk:=AWD-HDT;
+    TWS:=Sqrt(Sqr(RMC)+Sqr(AWS)-2*RMC*AWS*cos(AWD-HDT));
     if dk<180 then
     TWD:=HDT+dk+arccos((AWS-RMC*cos(dk))/TWS)
     else

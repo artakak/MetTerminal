@@ -322,8 +322,8 @@ M1:
  img1.Canvas.LineTo(Round(395+cos(AWD*(pi/180)-pi/2)*267),Round(302+sin(AWD*(pi/180)-pi/2)*267));
  end;
 
- //if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
-   RMC:=40;HDT:=90;
+ if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
+   //RMC:=40;HDT:=90;
 
    begin
     //true wind

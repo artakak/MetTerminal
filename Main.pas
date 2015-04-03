@@ -93,12 +93,16 @@ type
     procedure SetLedCTS(Value: Boolean);
     procedure SetLedDSR(Value: Boolean);
     procedure SetLedRLSD(Value: Boolean);
+
   end;
 
 var
   MainForm: TMainForm; HDT,RMC:Real;
 
 implementation
+const
+   ScreenWidth: Integer = 1920;
+   ScreenHeight: Integer = 1080;
 
 {$R *.DFM}
 {$R Led.res}
@@ -128,7 +132,15 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
+var
+iPercentage: Integer;
 begin
+  MainForm.scaled := true;
+  if Screen.Width <> ScreenWidth then
+  begin
+  iPercentage:=Round(((Screen.Width-1920)/1920)*100)+100;
+  ScaleBy(iPercentage,100);
+  end;
   EnumComPorts(cbPort.Items);
   EnumComPorts(cbb1.Items);
   EnumComPorts(cbb2.Items);
@@ -147,6 +159,7 @@ begin
   lbl1.BringToFront;lbl2.BringToFront;lbl3.BringToFront;lbl4.BringToFront;
   img1.Canvas.Brush.Color := clWhite;
   img1.Canvas.FillRect(img1.Canvas.ClipRect);
+
 end;
 
 procedure TMainForm.btnConnectClick(Sender: TObject);
@@ -322,7 +335,9 @@ M1:
  img1.Canvas.LineTo(Round(395+cos(AWD*(pi/180)-pi/2)*267),Round(302+sin(AWD*(pi/180)-pi/2)*267));
  end;
 
+
  if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
+
    //RMC:=40;HDT:=90;
 
    begin

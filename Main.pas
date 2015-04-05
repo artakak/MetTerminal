@@ -97,7 +97,7 @@ type
   end;
 
 var
-  MainForm: TMainForm; HDT,RMC:Real;
+  MainForm: TMainForm; HDT,RMC,AWS:Real;AWD:Integer;
 
 implementation
 const
@@ -132,17 +132,9 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
-var
-iPercentage: Integer;
 begin
-  MainForm.scaled := true;
-  if Screen.Width <> ScreenWidth then
-  begin
-  iPercentage:=Round(((Screen.Width-1920)/1920)*100)+100;
-  ScaleBy(iPercentage,100);
-  end;
   EnumComPorts(cbPort.Items);
-  EnumComPorts(cbb1.Items);
+  EnumComPorts(cbb1.Items);
   EnumComPorts(cbb2.Items);
   cbPort.ItemIndex := 0;
   cbb1.ItemIndex := 0;
@@ -273,10 +265,8 @@ end;
 
 procedure TMainForm.BComPort1RxChar(Sender: TObject; Count: Integer);
 var
-  S,P: String; k,j,i,AWD:Integer;TWD,TWS,AWS,TWA,dk:Real;ks:Char;
+  S,P: String; k,j,i:Integer;TWD,TWS,dk:Real;ks:Char;
   mas: array [1..100] of string;
-label
-  M1;
 begin
   BComPort1.ReadStr(S, Count);
   if cbCRLF.Checked and (S[Length(S)] = #13) then // Добавление перевода строки
@@ -300,15 +290,19 @@ begin
         //for i:=2 to Length(P) do ks:=Char(Byte(ks) xor Byte(P[i]));      CRC
         //lbledt10.Color := clLime;
         //lbledt10.Text:=ks;
+        if Char(mas[1][4])='M' then
+        begin
         lbledt2.Text:=mas[2]; try lbl5.Caption:='AWD '+mas[2]+#176; AWD:=StrToInt(mas[2]); except AWD:=0;lbl5.Caption:='';end;
         lbledt3.Text:=mas[4]; try lbl6.Caption:=FloatToStrF(StrToFloat(mas[4]),ffFixed,10,2)+#13#10+FloatToStrF(StrToFloat(mas[4])*0.514,ffFixed,10,2)+' m/s'; AWS:=StrToFloat(mas[4]); except AWS:=0;lbl6.Caption:='';end;
-        lbledt5.Text:=mas[8]; try lbl1.Caption:=FloatToStrF(StrToFloat(mas[8]),ffFixed,10,1)+#176+' C'; except lbl1.Caption:=''end;
-        lbledt4.Text:=mas[12]; lbl2.Caption:=mas[12];
-        lbledt6.Text:=mas[16]; try lbl3.Caption:=FloatToStrF(StrToFloat(mas[16]),ffFixed,10,1)+' %'; except lbl3.Caption:='' end; lbl4.Caption:='';
-        goto M1;
+        end else
+        begin
+        lbledt5.Text:=mas[3]; try lbl1.Caption:=FloatToStrF(StrToFloat(mas[3]),ffFixed,10,1)+#176+' C'; except lbl1.Caption:=''end;
+        lbledt4.Text:=mas[7]; try lbl2.Caption:=FloatToStrF(StrToFloat(mas[7])*750.06,ffFixed,10,0)+#13#10+'mmHg'; except lbl2.Caption:=''end;
+        lbledt6.Text:=mas[11]; try lbl3.Caption:=FloatToStrF(StrToFloat(mas[11]),ffFixed,10,1)+' %'; except lbl3.Caption:='' end; lbl4.Caption:='';
         end;
+    end else
 
-
+  begin
 
   lbledt1.Text := 'GILL';              // Обработка данных по протоколу GILL
   //lbledt10.Color := clLime;
@@ -325,35 +319,34 @@ begin
     lbledt7.Text:=mas[7]; try lbl4.Caption:=FloatToStrF(StrToFloat(mas[7]),ffFixed,10,1)+#176+' C';except lbl4.Caption:=''end;
     lbledt8.Text:=mas[9];
     lbledt9.Text:=mas[8];
-M1:
+    end;
+
  Memo1.Text := Memo1.Text + S;
  if lbl5.Caption <> '' then
    begin
- img1.Canvas.Pen.Width:=4;
- img1.Canvas.Pen.Color:=clLime;
- img1.Canvas.MoveTo(395,302);
- img1.Canvas.LineTo(Round(395+cos(AWD*(pi/180)-pi/2)*267),Round(302+sin(AWD*(pi/180)-pi/2)*267));
- end;
+   img1.Canvas.Pen.Width:=4;
+   img1.Canvas.Pen.Color:=clLime;
+   img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
+   img1.Canvas.LineTo(Round(img1.Width div 2+cos(AWD*(pi/180)-pi/2)*267),Round(img1.Height div 2+sin(AWD*(pi/180)-pi/2)*267));
+   end;
 
 
  if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
-
-   //RMC:=40;HDT:=90;
 
    begin
     //true wind
     if AWD-HDT<0 then dk:=AWD-HDT+360 else dk:=AWD-HDT;
     TWS:=Sqrt(Sqr(RMC)+Sqr(AWS)-2*RMC*AWS*cos(AWD-HDT));
     if dk<180 then
-    TWD:=HDT+dk+arccos((AWS-RMC*cos(dk))/TWS)
+    TWD:=HDT+dk+arccos((AWS-RMC*cos(AWD-HDT))/TWS)
     else
-    TWD:=HDT+dk-arccos((AWS-RMC*cos(dk))/TWS);
+    TWD:=HDT+dk-arccos((AWS-RMC*cos(AWD-HDT))/TWS);
     if TWD>360 then TWD:=Round(TWD-360);
     if TWD<0 then TWD:=Round(360+TWD);
     img1.Canvas.Pen.Width:=4;
     img1.Canvas.Pen.Color:=clRed;
-    img1.Canvas.MoveTo(395,302);
-    img1.Canvas.LineTo(Round(395+cos(TWD*(pi/180)-pi/2)*267),Round(302+sin(TWD*(pi/180)-pi/2)*267));
+    img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
+    img1.Canvas.LineTo(Round(img1.Width div 2+cos(TWD*(pi/180)-pi/2)*267),Round(img1.Height div 2+sin(TWD*(pi/180)-pi/2)*267));
     lbl9.Caption:='TWD '+FloatToStrF(TWD,ffFixed,10,0)+#176;
     lbl10.Caption:=FloatToStrF(TWS,ffFixed,10,2)+#13#10+FloatToStrF(TWS*0.514,ffFixed,10,2)+' m/s';
    end;
@@ -361,7 +354,7 @@ end;
 
 procedure TMainForm.bcmprt1RxChar(Sender: TObject; Count: Integer);
 var
-  S,P: String; k,j,i,AWD:Integer;AWS:Real;ks:Char;
+  S,P: String; k,j,i:Integer;ks:Char;
   mas: array [1..100] of string;
 begin
   bcmprt1.ReadStr(S, Count);
@@ -388,7 +381,7 @@ end;
 
 procedure TMainForm.bcmprt2RxChar(Sender: TObject; Count: Integer);
 var
-  S,P: String; k,j,i,AWD:Integer;AWS:Real;ks:Char;
+  S,P: String; k,j,i:Integer;ks:Char;
   mas: array [1..100] of string;
 begin
   bcmprt2.ReadStr(S, Count);
@@ -412,8 +405,6 @@ begin
     end;
 
 end;
-
-
 
 procedure TMainForm.Edit1KeyPress(Sender: TObject; var Key: Char);
 begin

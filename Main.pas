@@ -99,6 +99,7 @@ type
 
 var
   MainForm: TMainForm; S1,S2,S3: String;HDT,RMC,AWS:Real;AWD:Integer;
+  f:TextFile;
 
 implementation
 const
@@ -152,6 +153,8 @@ begin
   lbl1.BringToFront;lbl2.BringToFront;lbl3.BringToFront;lbl4.BringToFront;
   img1.Canvas.Brush.Color := clWhite;
   img1.Canvas.FillRect(img1.Canvas.ClipRect);
+  AssignFile(f,'testlog.txt');
+  Rewrite(f);
 
 end;
 
@@ -230,6 +233,7 @@ begin
     lbl5.Caption:='';lbl6.Caption:='';lbl9.Caption:='';
     lbl10.Caption:='';lbledt7.Text:='';
     tmr1.Enabled:=False;
+    CloseFile(f);
   end;
 end;
 
@@ -271,6 +275,8 @@ var
   S,P: String; k,j,i:Integer;TWD,TWS,dk:Real;ks:Char;
   mas,mas1,mas2: array [1..100] of string;
 begin
+    Append(f);
+    write(f,S1+'END'+#13#10);
     j:=1;
     img1.Canvas.Brush.Color := clWhite;
     img1.Canvas.FillRect(img1.Canvas.ClipRect);

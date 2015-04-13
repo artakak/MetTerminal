@@ -380,6 +380,7 @@ begin
 
 
     end;
+    S1:=''; S2:=''; S3:='';
 end;
 
 procedure TMainForm.BComPort1RxChar(Sender: TObject; Count: Integer);
@@ -390,7 +391,7 @@ begin
   if cbCRLF.Checked and (S[Length(S)] = #13) then // Добавление перевода строки
     S := S + #10;
     Memo1.Text := Memo1.Text + S;
-    S1:=S;
+    S1:=S1+S;
 end;
 
 procedure TMainForm.bcmprt1RxChar(Sender: TObject; Count: Integer);
@@ -398,7 +399,7 @@ var
   S: String;
 begin
   bcmprt1.ReadStr(S, Count);
-  S2:=S;
+  S2:=S2+S;
 end;
 
 procedure TMainForm.bcmprt2RxChar(Sender: TObject; Count: Integer);
@@ -406,7 +407,7 @@ var
   S: String;
 begin
   bcmprt2.ReadStr(S, Count);
-  S3:=S;
+  S3:=S3+S;
 end;
 
 procedure TMainForm.Edit1KeyPress(Sender: TObject; var Key: Char);

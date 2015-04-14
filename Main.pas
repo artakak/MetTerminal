@@ -322,8 +322,10 @@ begin
       begin
       img1.Canvas.Pen.Width:=30;
       img1.Canvas.Pen.Color:=clLime;
+      img1.Picture.Bitmap.Height := img1.Height;
+      img1.Picture.Bitmap.Width := img1.Width;
       img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
-      img1.Canvas.LineTo(Round(img1.Width div 2+cos(AWD*(pi/180)-pi/2)*267),Round(img1.Height div 2+sin(AWD*(pi/180)-pi/2)*267));
+      img1.Canvas.LineTo(Round(img1.Width div 2+cos(AWD*(pi/180)-pi/2)*(img1.Width div 2)),Round(img1.Height div 2+sin(AWD*(pi/180)-pi/2)*(img1.Width div 2)));
       end;
 
       j:=1;
@@ -376,7 +378,7 @@ begin
     img1.Canvas.Pen.Width:=30;
     img1.Canvas.Pen.Color:=clRed;
     img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
-    img1.Canvas.LineTo(Round(img1.Width div 2+cos(TWD*(pi/180)-pi/2)*267),Round(img1.Height div 2+sin(TWD*(pi/180)-pi/2)*267));
+    img1.Canvas.LineTo(Round(img1.Width div 2+cos(TWD*(pi/180)-pi/2)*(img1.Width div 2)),Round(img1.Height div 2+sin(TWD*(pi/180)-pi/2)*(img1.Width div 2)));
     lbl9.Caption:='TWD '+FloatToStrF(TWD,ffFixed,10,0)+#176;
     lbl10.Caption:=FloatToStrF(TWS,ffFixed,10,2)+#13#10+FloatToStrF(TWS*0.514,ffFixed,10,2)+' m/s';
     end;

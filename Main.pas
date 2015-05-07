@@ -68,6 +68,7 @@ type
     lbl10: TLabel;
     tmr1: TTimer;
     procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure parsing(Sender: TObject);
     procedure btnConnectClick(Sender: TObject);
     procedure btn1Click(Sender: TObject);
@@ -98,13 +99,10 @@ type
   end;
 
 var
-  MainForm: TMainForm; S1,S2,S3: String;HDT,RMC,AWS:Real;AWD:Integer;
-  f:TextFile;
+  MainForm: TMainForm; S1,S2,S3,sett: String;HDT,RMC,AWS:Real;AWD:Integer;
+  f,fset:TextFile;
 
 implementation
-const
-   ScreenWidth: Integer = 1920;
-   ScreenHeight: Integer = 1080;
 
 {$R *.DFM}
 {$R Led.res}
@@ -138,12 +136,24 @@ begin
   EnumComPorts(cbPort.Items);
   EnumComPorts(cbb1.Items);
   EnumComPorts(cbb2.Items);
-  cbPort.ItemIndex := 0;
-  cbb1.ItemIndex := 0;
-  cbb2.ItemIndex := 0;
-  cbBaudRate.ItemIndex := 6;
-  cbb3.ItemIndex := 6;
-  cbb4.ItemIndex := 6;
+   if FileExists('comports.txt') then
+     begin
+     AssignFile(fset,'comports.txt');
+     Reset(fset);
+     Read(fset,sett);
+     cbPort.ItemIndex := StrToInt(sett[1]);
+     cbBaudRate.ItemIndex :=StrToInt(sett[2]);
+     cbb1.ItemIndex :=StrToInt(sett[3]);
+     cbb3.ItemIndex :=StrToInt(sett[4]);
+     cbb2.ItemIndex :=StrToInt(sett[5]);
+     cbb4.ItemIndex :=StrToInt(sett[6]);
+     end;
+ //cbPort.ItemIndex := 0;
+ //cbb1.ItemIndex := 0;
+ //cbb2.ItemIndex := 0;
+ //cbBaudRate.ItemIndex := 6;
+ //cbb3.ItemIndex := 6;
+ //cbb4.ItemIndex := 6;
   SetLedCTS(False);
   SetLedDSR(False);
   SetLedRLSD(False);
@@ -155,8 +165,17 @@ begin
   img1.Canvas.FillRect(img1.Canvas.ClipRect);
   AssignFile(f,'testlog.txt');
   Rewrite(f);
+  MainForm.WindowState:=wsMaximized;
 
 end;
+
+procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+   sett:=inttostr(cbPort.ItemIndex)+inttostr(cbBaudRate.ItemIndex)+inttostr(cbb1.ItemIndex)+inttostr(cbb3.ItemIndex)+inttostr(cbb2.ItemIndex)+inttostr(cbb4.ItemIndex);
+   Rewrite(fset);
+   Write(fset,sett);
+   CloseFile(fset);
+end ;
 
 procedure TMainForm.btnConnectClick(Sender: TObject);
 begin

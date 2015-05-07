@@ -136,24 +136,22 @@ begin
   EnumComPorts(cbPort.Items);
   EnumComPorts(cbb1.Items);
   EnumComPorts(cbb2.Items);
-   if FileExists('comports.txt') then
+  if FileExists('comports.txt') then
      begin
      AssignFile(fset,'comports.txt');
      Reset(fset);
      Read(fset,sett);
-     cbPort.ItemIndex := StrToInt(sett[1]);
-     cbBaudRate.ItemIndex :=StrToInt(sett[2]);
-     cbb1.ItemIndex :=StrToInt(sett[3]);
-     cbb3.ItemIndex :=StrToInt(sett[4]);
-     cbb2.ItemIndex :=StrToInt(sett[5]);
-     cbb4.ItemIndex :=StrToInt(sett[6]);
+     try
+      begin
+      cbPort.ItemIndex := StrToInt(sett[1]);
+      cbBaudRate.ItemIndex :=StrToInt(sett[2]);
+      cbb1.ItemIndex :=StrToInt(sett[3]);
+      cbb3.ItemIndex :=StrToInt(sett[4]);
+      cbb2.ItemIndex :=StrToInt(sett[5]);
+      cbb4.ItemIndex :=StrToInt(sett[6]);
+      end;except
+      end;
      end;
- //cbPort.ItemIndex := 0;
- //cbb1.ItemIndex := 0;
- //cbb2.ItemIndex := 0;
- //cbBaudRate.ItemIndex := 6;
- //cbb3.ItemIndex := 6;
- //cbb4.ItemIndex := 6;
   SetLedCTS(False);
   SetLedDSR(False);
   SetLedRLSD(False);
@@ -171,11 +169,11 @@ end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-   sett:=inttostr(cbPort.ItemIndex)+inttostr(cbBaudRate.ItemIndex)+inttostr(cbb1.ItemIndex)+inttostr(cbb3.ItemIndex)+inttostr(cbb2.ItemIndex)+inttostr(cbb4.ItemIndex);
+   try sett:=inttostr(cbPort.ItemIndex)+inttostr(cbBaudRate.ItemIndex)+inttostr(cbb1.ItemIndex)+inttostr(cbb3.ItemIndex)+inttostr(cbb2.ItemIndex)+inttostr(cbb4.ItemIndex)except sett:=''end;
    Rewrite(fset);
    Write(fset,sett);
    CloseFile(fset);
-end ;
+end;
 
 procedure TMainForm.btnConnectClick(Sender: TObject);
 begin

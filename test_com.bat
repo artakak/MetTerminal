@@ -18,7 +18,7 @@ echo $GPRMC,123519,A,4807.038,N,01131.000,E,025.0,084.4,230394,003.1,W*6A>>com5
 
 REM ##############HDT##############
 
-echo $GPHDT,10.000,T*00>>com3
+echo $HEROT,000.0,A*2B $HEHDT,114.8,T*23>>com3
 
 waitfor /T 5 0 > nul
 

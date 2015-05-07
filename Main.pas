@@ -151,6 +151,7 @@ begin
       cbb4.ItemIndex :=StrToInt(sett[6]);
       end;
       except CloseFile(fset) end;
+      CloseFile(fset);
      end;
   SetLedCTS(False);
   SetLedDSR(False);
@@ -358,9 +359,9 @@ begin
               if S2[k] <> ',' then
               mas1[j]:=mas1[j]+S2[k] else inc(j);
             end;
-         if Char(mas1[1][4])='H' then
+         if Char(mas1[1][2])='H' then
         begin
-        edt1.Text:=mas1[2]; try HDT:=StrToFloat(mas1[2]); except HDT:=0;end;
+        edt1.Text:=mas1[4]; try HDT:=StrToFloat(mas1[4]); except HDT:=0;end;
         end;
         end;
       S2:='';

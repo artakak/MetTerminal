@@ -39,7 +39,6 @@ type
     lbledt7: TLabeledEdit;
     lbledt8: TLabeledEdit;
     lbledt9: TLabeledEdit;
-    lbledt10: TLabeledEdit;
     pgc1: TPageControl;
     ts1: TTabSheet;
     ts2: TTabSheet;
@@ -67,7 +66,9 @@ type
     edt2: TEdit;
     lbl9: TLabel;
     lbl10: TLabel;
+    tmr1: TTimer;
     procedure FormCreate(Sender: TObject);
+    procedure parsing(Sender: TObject);
     procedure btnConnectClick(Sender: TObject);
     procedure btn1Click(Sender: TObject);
     procedure btn2Click(Sender: TObject);
@@ -97,7 +98,8 @@ type
   end;
 
 var
-  MainForm: TMainForm; HDT,RMC:Real;
+  MainForm: TMainForm; S1,S2,S3: String;HDT,RMC,AWS:Real;AWD:Integer;
+  f:TextFile;
 
 implementation
 const
@@ -132,17 +134,9 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
-var
-iPercentage: Integer;
 begin
-  MainForm.scaled := true;
-  if Screen.Width <> ScreenWidth then
-  begin
-  iPercentage:=Round(((Screen.Width-1920)/1920)*100)+100;
-  ScaleBy(iPercentage,100);
-  end;
   EnumComPorts(cbPort.Items);
-  EnumComPorts(cbb1.Items);
+  EnumComPorts(cbb1.Items);
   EnumComPorts(cbb2.Items);
   cbPort.ItemIndex := 0;
   cbb1.ItemIndex := 0;
@@ -159,6 +153,8 @@ begin
   lbl1.BringToFront;lbl2.BringToFront;lbl3.BringToFront;lbl4.BringToFront;
   img1.Canvas.Brush.Color := clWhite;
   img1.Canvas.FillRect(img1.Canvas.ClipRect);
+  AssignFile(f,'testlog.txt');
+  Rewrite(f);
 
 end;
 
@@ -182,6 +178,7 @@ begin
     SetLedDSR(csDSR in BComPort1.Signals);
     SetLedRLSD(csRLSD in BComPort1.Signals);
     Edit1.SetFocus;
+    tmr1.Enabled:=True;
   end;
 end;
 
@@ -235,6 +232,8 @@ begin
     lbl2.Caption:='';lbl3.Caption:='';lbl4.Caption:='';
     lbl5.Caption:='';lbl6.Caption:='';lbl9.Caption:='';
     lbl10.Caption:='';lbledt7.Text:='';
+    tmr1.Enabled:=False;
+    CloseFile(f);
   end;
 end;
 
@@ -271,51 +270,44 @@ begin
   end;
 end;
 
-procedure TMainForm.BComPort1RxChar(Sender: TObject; Count: Integer);
+procedure TMainForm.parsing(Sender: TObject);
 var
-  S,P: String; k,j,i,AWD:Integer;TWD,TWS,AWS,TWA,dk:Real;ks:Char;
-  mas: array [1..100] of string;
-label
-  M1;
+  S,P: String; k,j,i:Integer;TWD,TWS,dk:Real;ks:Char;
+  mas,mas1,mas2: array [1..100] of string;
 begin
-  BComPort1.ReadStr(S, Count);
-  if cbCRLF.Checked and (S[Length(S)] = #13) then // Добавление перевода строки
-    S := S + #10;
+    Append(f);
+    write(f,S1+'END'+#13#10);
     j:=1;
     img1.Canvas.Brush.Color := clWhite;
     img1.Canvas.FillRect(img1.Canvas.ClipRect);
-  If S[1] = '$' then                              // Парсим предложение
+  if S1 <> '' then
+    begin
+    If S1[1] = '$' then                              // Парсим предложение
     begin
       lbledt1.Text := 'NMEA';
       lbledt7.Text:='';               //обнуляем то, что не идет по NMEA
       lbledt8.Text:='';
       lbledt9.Text:='';
-      for k:=1 to Length(S) do
+      for k:=1 to Length(S1) do
             begin
-              if S[k] <> ',' then
-              mas[j]:=mas[j]+S[k] else inc(j);
+              if S1[k] <> ',' then
+              mas[j]:=mas[j]+S1[k] else inc(j);
             end;
-        //P:='WIMWV,008,R,000.09,N,A';
-        //ks:=Char(P[1]);
-        //for i:=2 to Length(P) do ks:=Char(Byte(ks) xor Byte(P[i]));      CRC
-        //lbledt10.Color := clLime;
-        //lbledt10.Text:=ks;
         lbledt2.Text:=mas[2]; try lbl5.Caption:='AWD '+mas[2]+#176; AWD:=StrToInt(mas[2]); except AWD:=0;lbl5.Caption:='';end;
         lbledt3.Text:=mas[4]; try lbl6.Caption:=FloatToStrF(StrToFloat(mas[4]),ffFixed,10,2)+#13#10+FloatToStrF(StrToFloat(mas[4])*0.514,ffFixed,10,2)+' m/s'; AWS:=StrToFloat(mas[4]); except AWS:=0;lbl6.Caption:='';end;
         lbledt5.Text:=mas[8]; try lbl1.Caption:=FloatToStrF(StrToFloat(mas[8]),ffFixed,10,1)+#176+' C'; except lbl1.Caption:=''end;
-        lbledt4.Text:=mas[12]; lbl2.Caption:=mas[12];
+        lbledt4.Text:=mas[12]; try lbl2.Caption:=FloatToStrF(StrToFloat(mas[12])*750.06,ffFixed,10,0)+#13#10+'mmHg'; except lbl2.Caption:=''end;
         lbledt6.Text:=mas[16]; try lbl3.Caption:=FloatToStrF(StrToFloat(mas[16]),ffFixed,10,1)+' %'; except lbl3.Caption:='' end; lbl4.Caption:='';
-        goto M1;
-        end;
 
+    end else
 
+  begin
 
   lbledt1.Text := 'GILL';              // Обработка данных по протоколу GILL
-  //lbledt10.Color := clLime;
-  for k:=1 to Length(S) do
+  for k:=1 to Length(S1) do
     begin
-      if S[k] <> ',' then
-      mas[j]:=mas[j]+S[k] else inc(j);
+      if S1[k] <> ',' then
+      mas[j]:=mas[j]+S1[k] else inc(j);
     end;
     lbledt2.Text:=mas[2]; try lbl5.Caption:='AWD '+mas[2]+#176; AWD:=StrToInt(mas[2]); except AWD:=0;lbl5.Caption:='';end;
     lbledt3.Text:=mas[3]; try lbl6.Caption:=FloatToStrF(StrToFloat(mas[3]),ffFixed,10,2)+#13#10+FloatToStrF(StrToFloat(mas[3])*0.514,ffFixed,10,2)+' m/s'; AWS:=StrToFloat(mas[3]); except AWS:=0;lbl6.Caption:='';end;
@@ -325,93 +317,97 @@ begin
     lbledt7.Text:=mas[7]; try lbl4.Caption:=FloatToStrF(StrToFloat(mas[7]),ffFixed,10,1)+#176+' C';except lbl4.Caption:=''end;
     lbledt8.Text:=mas[9];
     lbledt9.Text:=mas[8];
-M1:
- Memo1.Text := Memo1.Text + S;
+    end;
+
  if lbl5.Caption <> '' then
    begin
- img1.Canvas.Pen.Width:=4;
- img1.Canvas.Pen.Color:=clLime;
- img1.Canvas.MoveTo(395,302);
- img1.Canvas.LineTo(Round(395+cos(AWD*(pi/180)-pi/2)*267),Round(302+sin(AWD*(pi/180)-pi/2)*267));
- end;
+   img1.Canvas.Pen.Width:=4;
+   img1.Canvas.Pen.Color:=clLime;
+   img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
+   img1.Canvas.LineTo(Round(img1.Width div 2+cos(AWD*(pi/180)-pi/2)*267),Round(img1.Height div 2+sin(AWD*(pi/180)-pi/2)*267));
+   end;
 
-    if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
-   //RMC:=40;HDT:=90;
-
+ j:=1;
+ if S2 <> '' then
+ begin
+ If S2[1] = '$' then                   // Парсим предложение HDT
+    begin
+      for k:=1 to Length(S2) do
+            begin
+              if S2[k] <> ',' then
+              mas1[j]:=mas1[j]+S2[k] else inc(j);
+            end;
+        if Char(mas1[1][4])='H' then
+        begin
+        edt1.Text:=mas1[2]; try HDT:=StrToFloat(mas1[2]); except HDT:=0;end;
+        end;
+    end;
+  end;
+  j:=1;
+  if S3 <> '' then
+  begin
+  If S3[1] = '$' then                   // Парсим предложение RMC
+    begin
+      for k:=1 to Length(S3) do
+            begin
+              if S3[k] <> ',' then
+              mas2[j]:=mas2[j]+S3[k] else inc(j);
+            end;
+        if Char(mas2[1][4])='R' then
+        begin
+        edt2.Text:=mas2[8]; try RMC:=StrToFloat(mas2[8]); except RMC:=0;end;
+        end;
+    end;
+  end;
+ if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
    begin
     //true wind
     if AWD-HDT<0 then dk:=AWD-HDT+360 else dk:=AWD-HDT;
     TWS:=Sqrt(Sqr(RMC)+Sqr(AWS)-2*RMC*AWS*cos(AWD-HDT));
     if dk<180 then
-    TWD:=HDT+dk+arccos((AWS-RMC*cos(dk))/TWS)
+    TWD:=HDT+dk+arccos((AWS-RMC*cos(AWD-HDT))/TWS)
     else
-    TWD:=HDT+dk-arccos((AWS-RMC*cos(dk))/TWS);
+    TWD:=HDT+dk-arccos((AWS-RMC*cos(AWD-HDT))/TWS);
     if TWD>360 then TWD:=Round(TWD-360);
     if TWD<0 then TWD:=Round(360+TWD);
     img1.Canvas.Pen.Width:=4;
     img1.Canvas.Pen.Color:=clRed;
-    img1.Canvas.MoveTo(395,302);
-    img1.Canvas.LineTo(Round(395+cos(TWD*(pi/180)-pi/2)*267),Round(302+sin(TWD*(pi/180)-pi/2)*267));
+    img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
+    img1.Canvas.LineTo(Round(img1.Width div 2+cos(TWD*(pi/180)-pi/2)*267),Round(img1.Height div 2+sin(TWD*(pi/180)-pi/2)*267));
     lbl9.Caption:='TWD '+FloatToStrF(TWD,ffFixed,10,0)+#176;
     lbl10.Caption:=FloatToStrF(TWS,ffFixed,10,2)+#13#10+FloatToStrF(TWS*0.514,ffFixed,10,2)+' m/s';
    end;
+
+
+    end;
+end;
+
+procedure TMainForm.BComPort1RxChar(Sender: TObject; Count: Integer);
+var
+  S: String;
+begin
+  BComPort1.ReadStr(S, Count);
+  if cbCRLF.Checked and (S[Length(S)] = #13) then // Добавление перевода строки
+    S := S + #10;
+    Memo1.Text := Memo1.Text + S;
+    S1:=S;
 end;
 
 procedure TMainForm.bcmprt1RxChar(Sender: TObject; Count: Integer);
 var
-  S,P: String; k,j,i,AWD:Integer;AWS:Real;ks:Char;
-  mas: array [1..100] of string;
+  S: String;
 begin
   bcmprt1.ReadStr(S, Count);
-  j:=1;
-  If S[1] = '$' then                   // Парсим предложение HDT
-    begin
-      for k:=1 to Length(S) do
-            begin
-              if S[k] <> ',' then
-              mas[j]:=mas[j]+S[k] else inc(j);
-            end;
-        //P:='WIMWV,008,R,000.09,N,A';
-        //ks:=Char(P[1]);
-        //for i:=2 to Length(P) do ks:=Char(Byte(ks) xor Byte(P[i]));      CRC
-        //lbledt10.Color := clLime;
-        //lbledt10.Text:=ks;
-        if Char(mas[1][4])='H' then
-        begin
-        edt1.Text:=mas[2]; try HDT:=StrToFloat(mas[2]); except HDT:=0;end;
-        end;
-    end;
-
+  S2:=S;
 end;
 
 procedure TMainForm.bcmprt2RxChar(Sender: TObject; Count: Integer);
 var
-  S,P: String; k,j,i,AWD:Integer;AWS:Real;ks:Char;
-  mas: array [1..100] of string;
+  S: String;
 begin
   bcmprt2.ReadStr(S, Count);
-  j:=1;
-  If S[1] = '$' then                   // Парсим предложение RMC
-    begin
-      for k:=1 to Length(S) do
-            begin
-              if S[k] <> ',' then
-              mas[j]:=mas[j]+S[k] else inc(j);
-            end;
-        //P:='WIMWV,008,R,000.09,N,A';
-        //ks:=Char(P[1]);
-        //for i:=2 to Length(P) do ks:=Char(Byte(ks) xor Byte(P[i]));      CRC
-        //lbledt10.Color := clLime;
-        //lbledt10.Text:=ks;
-        if Char(mas[1][4])='R' then
-        begin
-        edt2.Text:=mas[8]; try RMC:=StrToFloat(mas[8]); except RMC:=0;end;
-        end;
-    end;
-
+  S3:=S;
 end;
-
-
 
 procedure TMainForm.Edit1KeyPress(Sender: TObject; var Key: Char);
 begin

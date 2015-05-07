@@ -178,7 +178,7 @@ begin
     SetLedDSR(csDSR in BComPort1.Signals);
     SetLedRLSD(csRLSD in BComPort1.Signals);
     Edit1.SetFocus;
-    tmr1.Enabled:=True;
+
   end;
 end;
 
@@ -276,14 +276,16 @@ var
   mas,mas1,mas2: array [1..100] of string;
 begin
     Append(f);
-    write(f,S1+'END'+#13#10);
+    write(f,'METEO-START'+#13#10+S1+'METEO-END'+#13#10);
+    write(f,'HDT-START'+#13#10+S2+'HDT-END'+#13#10);
+    write(f,'RMC-START'+#13#10+S3+'RMC-END'+#13#10);
     j:=1;
     img1.Canvas.Brush.Color := clWhite;
     img1.Canvas.FillRect(img1.Canvas.ClipRect);
   if S1 <> '' then
     begin
-    If S1[1] = '$' then                              // Парсим предложение
-    begin
+      If S1[1] = '$' then                              // Парсим предложение
+      begin
       lbledt1.Text := 'NMEA';
       lbledt7.Text:='';               //обнуляем то, что не идет по NMEA
       lbledt8.Text:='';
@@ -298,57 +300,60 @@ begin
         lbledt5.Text:=mas[8]; try lbl1.Caption:=FloatToStrF(StrToFloat(mas[8]),ffFixed,10,1)+#176+' C'; except lbl1.Caption:=''end;
         lbledt4.Text:=mas[12]; try lbl2.Caption:=FloatToStrF(StrToFloat(mas[12])*750.06,ffFixed,10,0)+#13#10+'mmHg'; except lbl2.Caption:=''end;
         lbledt6.Text:=mas[16]; try lbl3.Caption:=FloatToStrF(StrToFloat(mas[16]),ffFixed,10,1)+' %'; except lbl3.Caption:='' end; lbl4.Caption:='';
+      end;
 
-    end else
+      If S1[1] = #02 then
+      begin
+      lbledt1.Text := 'GILL';              // Обработка данных по протоколу GILL
+      for k:=1 to Length(S1) do
+        begin
+          if S1[k] <> ',' then
+          mas[j]:=mas[j]+S1[k] else inc(j);
+        end;
+      lbledt2.Text:=mas[2]; try lbl5.Caption:='AWD '+mas[2]+#176; AWD:=StrToInt(mas[2]); except AWD:=0;lbl5.Caption:='';end;
+      lbledt3.Text:=mas[3]; try lbl6.Caption:=FloatToStrF(StrToFloat(mas[3]),ffFixed,10,2)+#13#10+FloatToStrF(StrToFloat(mas[3])*0.514,ffFixed,10,2)+' m/s'; AWS:=StrToFloat(mas[3]); except AWS:=0;lbl6.Caption:='';end;
+      lbledt4.Text:=mas[5]; lbl2.Caption:=mas[5];
+      lbledt6.Text:=mas[6]; try lbl3.Caption:=FloatToStrF(StrToFloat(mas[6]),ffFixed,10,1)+' %'; except lbl3.Caption:='' end;
+      lbledt5.Text:=mas[4]; try lbl1.Caption:=FloatToStrF(StrToFloat(mas[4]),ffFixed,10,1)+#176+' C'; except lbl1.Caption:=''end;
+      lbledt7.Text:=mas[7]; try lbl4.Caption:=FloatToStrF(StrToFloat(mas[7]),ffFixed,10,1)+#176+' C';except lbl4.Caption:=''end;
+      lbledt8.Text:=mas[9];
+      lbledt9.Text:=mas[8];
+      end;
 
-  begin
+      if lbl5.Caption <> '' then
+      begin
+      img1.Canvas.Pen.Width:=30;
+      img1.Canvas.Pen.Color:=clLime;
+      img1.Picture.Bitmap.Height := img1.Height;
+      img1.Picture.Bitmap.Width := img1.Width;
+      img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
+      img1.Canvas.LineTo(Round(img1.Width div 2+cos(AWD*(pi/180)-pi/2)*(img1.Width div 2)),Round(img1.Height div 2+sin(AWD*(pi/180)-pi/2)*(img1.Width div 2)));
+      end;
 
-  lbledt1.Text := 'GILL';              // Обработка данных по протоколу GILL
-  for k:=1 to Length(S1) do
-    begin
-      if S1[k] <> ',' then
-      mas[j]:=mas[j]+S1[k] else inc(j);
-    end;
-    lbledt2.Text:=mas[2]; try lbl5.Caption:='AWD '+mas[2]+#176; AWD:=StrToInt(mas[2]); except AWD:=0;lbl5.Caption:='';end;
-    lbledt3.Text:=mas[3]; try lbl6.Caption:=FloatToStrF(StrToFloat(mas[3]),ffFixed,10,2)+#13#10+FloatToStrF(StrToFloat(mas[3])*0.514,ffFixed,10,2)+' m/s'; AWS:=StrToFloat(mas[3]); except AWS:=0;lbl6.Caption:='';end;
-    lbledt4.Text:=mas[5]; lbl2.Caption:=mas[5];
-    lbledt6.Text:=mas[6]; try lbl3.Caption:=FloatToStrF(StrToFloat(mas[6]),ffFixed,10,1)+' %'; except lbl3.Caption:='' end;
-    lbledt5.Text:=mas[4]; try lbl1.Caption:=FloatToStrF(StrToFloat(mas[4]),ffFixed,10,1)+#176+' C'; except lbl1.Caption:=''end;
-    lbledt7.Text:=mas[7]; try lbl4.Caption:=FloatToStrF(StrToFloat(mas[7]),ffFixed,10,1)+#176+' C';except lbl4.Caption:=''end;
-    lbledt8.Text:=mas[9];
-    lbledt9.Text:=mas[8];
-    end;
-
- if lbl5.Caption <> '' then
-   begin
-   img1.Canvas.Pen.Width:=4;
-   img1.Canvas.Pen.Color:=clLime;
-   img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
-   img1.Canvas.LineTo(Round(img1.Width div 2+cos(AWD*(pi/180)-pi/2)*267),Round(img1.Height div 2+sin(AWD*(pi/180)-pi/2)*267));
-   end;
-
- j:=1;
- if S2 <> '' then
- begin
- If S2[1] = '$' then                   // Парсим предложение HDT
-    begin
-      for k:=1 to Length(S2) do
+      j:=1;
+      if S2 <> '' then
+      begin
+      If S2[1] = '$' then                   // Парсим предложение HDT
+        begin
+         for k:=1 to Length(S2) do
             begin
               if S2[k] <> ',' then
               mas1[j]:=mas1[j]+S2[k] else inc(j);
             end;
-        if Char(mas1[1][4])='H' then
+         if Char(mas1[1][4])='H' then
         begin
         edt1.Text:=mas1[2]; try HDT:=StrToFloat(mas1[2]); except HDT:=0;end;
         end;
-    end;
-  end;
-  j:=1;
-  if S3 <> '' then
-  begin
-  If S3[1] = '$' then                   // Парсим предложение RMC
-    begin
-      for k:=1 to Length(S3) do
+        end;
+      S2:='';
+      end;
+
+      j:=1;
+      if S3 <> '' then
+      begin
+        If S3[1] = '$' then                   // Парсим предложение RMC
+        begin
+        for k:=1 to Length(S3) do
             begin
               if S3[k] <> ',' then
               mas2[j]:=mas2[j]+S3[k] else inc(j);
@@ -357,11 +362,13 @@ begin
         begin
         edt2.Text:=mas2[8]; try RMC:=StrToFloat(mas2[8]); except RMC:=0;end;
         end;
-    end;
-  end;
- if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
-   begin
-    //true wind
+        end;
+      S3:='';
+      end;
+
+    if (edt1.Text <> '') and (edt2.Text <> '') and (lbl5.Caption <> '') then
+    begin
+     //true wind
     if AWD-HDT<0 then dk:=AWD-HDT+360 else dk:=AWD-HDT;
     TWS:=Sqrt(Sqr(RMC)+Sqr(AWS)-2*RMC*AWS*cos(AWD-HDT));
     if dk<180 then
@@ -370,27 +377,28 @@ begin
     TWD:=HDT+dk-arccos((AWS-RMC*cos(AWD-HDT))/TWS);
     if TWD>360 then TWD:=Round(TWD-360);
     if TWD<0 then TWD:=Round(360+TWD);
-    img1.Canvas.Pen.Width:=4;
+    img1.Canvas.Pen.Width:=30;
     img1.Canvas.Pen.Color:=clRed;
     img1.Canvas.MoveTo(img1.Width div 2,img1.Height div 2);
-    img1.Canvas.LineTo(Round(img1.Width div 2+cos(TWD*(pi/180)-pi/2)*267),Round(img1.Height div 2+sin(TWD*(pi/180)-pi/2)*267));
+    img1.Canvas.LineTo(Round(img1.Width div 2+cos(TWD*(pi/180)-pi/2)*(img1.Width div 2)),Round(img1.Height div 2+sin(TWD*(pi/180)-pi/2)*(img1.Width div 2)));
     lbl9.Caption:='TWD '+FloatToStrF(TWD,ffFixed,10,0)+#176;
     lbl10.Caption:=FloatToStrF(TWS,ffFixed,10,2)+#13#10+FloatToStrF(TWS*0.514,ffFixed,10,2)+' m/s';
-   end;
-
-
     end;
+     S1:=''; tmr1.Enabled:=False;
+    end;
+
 end;
 
 procedure TMainForm.BComPort1RxChar(Sender: TObject; Count: Integer);
 var
   S: String;
 begin
+  tmr1.Enabled:=True;
   BComPort1.ReadStr(S, Count);
   if cbCRLF.Checked and (S[Length(S)] = #13) then // Добавление перевода строки
     S := S + #10;
     Memo1.Text := Memo1.Text + S;
-    S1:=S;
+    S1:=S1+S;
 end;
 
 procedure TMainForm.bcmprt1RxChar(Sender: TObject; Count: Integer);
@@ -398,7 +406,7 @@ var
   S: String;
 begin
   bcmprt1.ReadStr(S, Count);
-  S2:=S;
+  S2:=S2+S;
 end;
 
 procedure TMainForm.bcmprt2RxChar(Sender: TObject; Count: Integer);
@@ -406,7 +414,7 @@ var
   S: String;
 begin
   bcmprt2.ReadStr(S, Count);
-  S3:=S;
+  S3:=S3+S;
 end;
 
 procedure TMainForm.Edit1KeyPress(Sender: TObject; var Key: Char);

@@ -149,8 +149,8 @@ begin
       cbb3.ItemIndex :=StrToInt(sett[4]);
       cbb2.ItemIndex :=StrToInt(sett[5]);
       cbb4.ItemIndex :=StrToInt(sett[6]);
-      end;except
       end;
+      except CloseFile(fset) end;
      end;
   SetLedCTS(False);
   SetLedDSR(False);
@@ -170,6 +170,7 @@ end;
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
    try sett:=inttostr(cbPort.ItemIndex)+inttostr(cbBaudRate.ItemIndex)+inttostr(cbb1.ItemIndex)+inttostr(cbb3.ItemIndex)+inttostr(cbb2.ItemIndex)+inttostr(cbb4.ItemIndex)except sett:=''end;
+   AssignFile(fset,'comports.txt');
    Rewrite(fset);
    Write(fset,sett);
    CloseFile(fset);

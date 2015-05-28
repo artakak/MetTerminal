@@ -216,7 +216,7 @@ end;
 procedure TMainForm.btn2Click(Sender: TObject);
 begin
   bcmprt2.Port := cbb2.Text;
-  bcmprt2.BaudRate := TBaudRate(cbb2.ItemIndex);
+  bcmprt2.BaudRate := TBaudRate(cbb4.ItemIndex);
   if bcmprt2.Open then
   begin
     btn2.Enabled := False;
@@ -377,9 +377,9 @@ begin
               if S3[k] <> ',' then
               mas2[j]:=mas2[j]+S3[k] else inc(j);
             end;
-        if Char(mas2[1][4])='R' then
+        if Char(mas2[1][3])='P' then
         begin
-        edt2.Text:=mas2[8]; try RMC:=StrToFloat(mas2[8]); except RMC:=0;end;
+        edt2.Text:=mas2[16]; try RMC:=StrToFloat(mas2[16]); except RMC:=0;end;
         end;
         end;
       S3:='';

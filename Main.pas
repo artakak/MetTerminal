@@ -67,6 +67,7 @@ type
     lbl9: TLabel;
     lbl10: TLabel;
     tmr1: TTimer;
+    lbledt10: TLabeledEdit;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure parsing(Sender: TObject);
@@ -100,7 +101,7 @@ type
 
 var
   MainForm: TMainForm; S1,S2,S3,sett: String;HDT,RMC,AWS:Real;AWD:Integer;
-  f,fset:TextFile;
+  f,fset:TextFile;DS:DWORD;
 
 implementation
 
@@ -132,11 +133,15 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
+var   
+     VolumeName,FileSystemName: array [0..MAX_PATH-1] of Char;
+     VolumeSerialNo:DWORD;
+     MaxComponentLength,FileSystemFlags:DWORD;
 begin
   EnumComPorts(cbPort.Items);
   EnumComPorts(cbb1.Items);
   EnumComPorts(cbb2.Items);
-  if FileExists('comports.txt') then
+  if FileExists('comports.txt') then            //доработать!!!
      begin
      AssignFile(fset,'comports.txt');
      Reset(fset);
@@ -165,6 +170,9 @@ begin
   AssignFile(f,'testlog.txt');
   Rewrite(f);
   MainForm.WindowState:=wsMaximized;
+  GetVolumeInformation('C:\',VolumeName,MAX_PATH,@VolumeSerialNo,MaxComponentLength,FileSystemFlags,FileSystemName,MAX_PATH);
+  DS:=VolumeSerialNo;
+  lbledt10.Text:=IntToStr(DS);
 
 end;
 
@@ -181,6 +189,11 @@ procedure TMainForm.btnConnectClick(Sender: TObject);
 begin
   BComPort1.Port := cbPort.Text;
   BComPort1.BaudRate := TBaudRate(cbBaudRate.ItemIndex);
+  if ((IntToStr(DS)+'GlobalInfo')<>'2886371904GlobalInfo') then
+    begin
+    ShowMessage('Not Activated!!!');
+    Application.Terminate;
+    end;
   if BComPort1.Open then
   begin
     Edit1.Enabled := True; Edit1.Color := clWindow;

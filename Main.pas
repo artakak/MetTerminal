@@ -141,22 +141,18 @@ begin
   EnumComPorts(cbPort.Items);
   EnumComPorts(cbb1.Items);
   EnumComPorts(cbb2.Items);
-  if FileExists('comports.txt') then            //доработать!!!
+  if FileExists('comports.txt') then
      begin
      AssignFile(fset,'comports.txt');
      Reset(fset);
      Read(fset,sett);
-     try
-      begin
-      cbPort.ItemIndex := StrToInt(sett[1]);
-      cbBaudRate.ItemIndex :=StrToInt(sett[2]);
-      cbb1.ItemIndex :=StrToInt(sett[3]);
-      cbb3.ItemIndex :=StrToInt(sett[4]);
-      cbb2.ItemIndex :=StrToInt(sett[5]);
-      cbb4.ItemIndex :=StrToInt(sett[6]);
-      end;
-      except CloseFile(fset) end;
-      CloseFile(fset);
+     try cbPort.ItemIndex := StrToInt(sett[1]); except cbPort.ItemIndex :=0 end;
+     try cbBaudRate.ItemIndex :=StrToInt(sett[2]); except cbBaudRate.ItemIndex :=0 end;
+     try cbb1.ItemIndex :=StrToInt(sett[3]); except cbb1.ItemIndex :=0 end;
+     try cbb3.ItemIndex :=StrToInt(sett[4]); except cbb3.ItemIndex :=0 end;
+     try cbb2.ItemIndex :=StrToInt(sett[5]); except cbb2.ItemIndex :=0 end;
+     try cbb4.ItemIndex :=StrToInt(sett[6]); except cbb4.ItemIndex :=0 end;
+     CloseFile(fset);
      end;
   SetLedCTS(False);
   SetLedDSR(False);

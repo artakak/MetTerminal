@@ -142,6 +142,7 @@ begin
   EnumComPorts(cbPort.Items);
   EnumComPorts(cbb1.Items);
   EnumComPorts(cbb2.Items);
+  if FileExists('key.txt') then lbledt10.Visible:=False;
   if FileExists('comports.txt') then
      begin
      AssignFile(fset,'comports.txt');
@@ -170,6 +171,7 @@ begin
   GetVolumeInformation('C:\',VolumeName,MAX_PATH,@VolumeSerialNo,MaxComponentLength,FileSystemFlags,FileSystemName,MAX_PATH);
   DS:=VolumeSerialNo;
   lbledt10.Text:=IntToStr(DS);
+  //lbledt10.Text:=md5(md5(IntToStr(DS)));
 
 end;
 
@@ -194,11 +196,7 @@ begin
      CloseFile(fsetmd5);
     end  else Application.Terminate;
 
-  if key<>md5(IntToStr(DS)) then
-    begin
-     ShowMessage('Not Activated!!!');
-     Application.Terminate;
-    end;
+  if key<>md5(md5(IntToStr(DS))) then Application.Terminate;
 
   if BComPort1.Open then
   begin

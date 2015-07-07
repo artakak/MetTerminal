@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, BCPort, ComCtrls, Math, pngimage;
+  StdCtrls, ExtCtrls, BCPort, ComCtrls, Math, pngimage, IdHashMessageDigest;
 
 type
   TMainForm = class(TForm)
@@ -91,6 +91,7 @@ type
     procedure BComPort1RLSDChange(Sender: TObject; State: Boolean);
     procedure cbSetRTSClick(Sender: TObject);
     procedure cbSetDTRClick(Sender: TObject);
+    function md5(s: string): string;
   private
     // Включение-выключение индикаторов
     procedure SetLedCTS(Value: Boolean);
@@ -100,8 +101,8 @@ type
   end;
 
 var
-  MainForm: TMainForm; S1,S2,S3,sett: String;HDT,RMC,AWS:Real;AWD:Integer;
-  f,fset:TextFile;DS:DWORD;
+  MainForm: TMainForm; S1,S2,S3,sett,key: String;HDT,RMC,AWS:Real;AWD:Integer;
+  f,fset,fsetmd5:TextFile;DS:DWORD;
 
 implementation
 
@@ -185,11 +186,20 @@ procedure TMainForm.btnConnectClick(Sender: TObject);
 begin
   BComPort1.Port := cbPort.Text;
   BComPort1.BaudRate := TBaudRate(cbBaudRate.ItemIndex);
-  if ((IntToStr(DS)+'GlobalInfo')<>'2886371904GlobalInfo') then
+  if FileExists('key.txt') then
     begin
-    ShowMessage('Not Activated!!!');
-    Application.Terminate;
+     AssignFile(fsetmd5,'key.txt');
+     Reset(fsetmd5);
+     Read(fsetmd5,key);
+     CloseFile(fsetmd5);
+    end  else Application.Terminate;
+
+  if key<>md5(IntToStr(DS)) then
+    begin
+     ShowMessage('Not Activated!!!');
+     Application.Terminate;
     end;
+
   if BComPort1.Open then
   begin
     Edit1.Enabled := True; Edit1.Color := clWindow;
@@ -500,6 +510,17 @@ procedure TMainForm.cbSetDTRClick(Sender: TObject);
 begin
   BComPort1.SetDTR(cbSetDTR.Checked);
   Edit1.SetFocus;
+end;
+
+function TMainForm.md5(s: string): string;
+begin
+Result := '';
+with TIdHashMessageDigest5.Create do
+try
+Result := AnsiLowerCase(AsHex(HashValue(s)));
+finally
+Free;
+end;
 end;
 
 end.
